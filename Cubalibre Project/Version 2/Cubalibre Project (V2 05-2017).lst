@@ -1,0 +1,853 @@
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00002 ;*        Título: Máquina preparadora de Cuba Libre (Exercício 1)                                       
+                                               *
+                      00003 ;*                                                                                                      
+                                                                                                                            
+                      00004 ;*              Disciplina: Microcomputadores                           Semestre: 2017.1                
+                                                                               *
+                      00005 ;*              Professor:      Mauro Rodrigues dos Santos                                              
+                                                                                               *                            
+                      00006 ;*                                                                                                      
+                                                                       *
+                      00007 ;*      Desenvolvido por:                                                                               
+                                                                       *
+                      00008 ;*      =>      Guilherme de Souza Bastos                                                               
+                               *
+                      00009 ;*      =>      Karl Vandesman de Matos Sousa                                                           
+                                                                                       *
+                      00010 ;*                                                                                                      
+                                                                                                       *
+                      00011 ;*      VERSÃO: 2.0                                     DATA:08/05/2017                                 
+                               *
+                      00012 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00013 
+                      00014 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00015 ;*                                     DESCRIÇÃO DO ARQUIVO                                            *
+                                          
+                      00016 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00017 
+                      00018 ; Projeto de um sistema utilizando o PIC16F628A para controle automático de quatro máquinas para fazer
+                      00019 ; uma bebida chamada Cuba Libre, feita com uma dose de rum, quatro cubos de gelo, uma fatia de limão e
+                      00020 ; 250ml de Coca-Cola. As máquinas realizam as seguintes atividades:
+                      00021 ;                 
+                      00022 ;       - A máquina M1 fornece uma dose de rum toda vez que for ativada;                      
+                      00023 ;   - A máquina M2 fornece um cubo de gelo toda vez que for ativada;
+                      00024 ;       - A máquina M3 fornece uma fatia de limão toda vez que for ativada;
+                      00025 ;       - A máquina M4, quando ativada, fornece Coca-Cola e após escoar 250ml gera um sinal de saída S=1
+                            ,
+                      00026 ;         sinalizando o fim da preparação da bebida.
+                      00027 ;
+                      00028 ; As máquinas são acionadas a partir de um pulso de Ta segundos. 
+                      00029 ; As máquinas devem ser reabastecidas após a preparação de N Cubas Libres (capacidade de abastecimento)
+                      00030 ; e para isso, é necessário o acionamento informando que a máquina foi reabastecida.
+                      00031                                                                                                         
+                                                        
+                      00032 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00033 ;*                     ARQUIVOS DE DEFINIÇÕES E CONFIGURAÇÕES                                          *
+                                        
+                      00034 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                             
+                      00035 
+                      00036         #INCLUDE <P16F628A.INC>         ;Arquivo padrão da Microchip para o PIC16F628A
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F628A processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+Message[301]: MESSAGE: (Processor-header file mismatch.  Verify selected processor.)
+                      00385         LIST
+                      00037         RADIX           DEC                             ;Define o Decimal como forma padrão ("default" d
+                            o programa)
+                      00038                                                                 ;não sendo necessário expressar o número
+                             como .XX
+                      00039 
+2007   3F73           00040         __CONFIG _BOREN_ON & _CP_OFF & _PWRTE_ON & _WDT_OFF & _LVP_OFF & _MCLRE_ON ;Brown-out reset habi
+                            litado (proteção contra alimentação fraca)
+                      00041                                                                                                         
+                                                                                    ;Proteção de código desabilitado
+                      00042                                                                                                         
+                                                                                    ;Power-up Timer Enable hablitado
+                      00043                                                                                                         
+                                                                                    ;Watchdog timer desabilitado
+                      00044                                                                                                         
+                                                                                    ;Programação de baixa voltagem desabilit
+                      00045                                                                                                         
+                                                                                    ;Masterclear habilitado
+                      00046         #DEFINE BANK0   BCF STATUS, RP0 ;Definição de comandos para alteração   
+                      00047         #DEFINE BANK1   BSF STATUS, RP0 ;da página de memória de dados
+                      00048 
+                      00049         #DEFINE ZERO            STATUS,Z                        ;Flag Z do registrador STATUS
+                      00050 
+                      00051         #DEFINE T0_FLAG         INTCON, T0IF            ;Flag que sinaliza estouro do Timer
+                      00052         #DEFINE PREP_FLAG       INTCON, INTF            ;Flag que sinaliza interrupção externa
+                      00053         #DEFINE PORTB_FLAG      INTCON, RBIF            ;Flag que sinaliza alteração no pino RB6 ou RB7,
+                             
+                      00054                                                                                         ;avisando que a 
+                            máquina M4 finalizou o trabalho
+                      00055 
+                      00056         #DEFINE HAB_GERAL       INTCON, GIE                     ;Habilita as interrupções (é necessária 
+                            ainda a habilitação individual 
+                      00057                                                                                         ;de cada interru
+                            pção)
+                      00058         #DEFINE HAB_RB          INTCON, RBIE            ;Habilita as interrupções por mudança de estado 
+                            das portas RB<4:7>
+                      00059         #DEFINE HAB_TMR0        INTCON, T0IE            ;Habilita a interrupção do Timer 0
+                      00060         #DEFINE HAB_PREP        INTCON, INTE            ;Habilita a interrupção do botão preparar (RB0)
+                      00061 
+                      00062         #DEFINE DELAY_OK        REG_DELAY, 0            ;Determinar esse bit para avisar que houve o tem
+                            po de delay
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00063 
+                      00064 
+                      00065 ;*************************************************** 
+                      00066 ;*                               VARIÁVEIS                     *                   
+                      00067 ;*************************************************** 
+                      00068 ;Definição do bloco de variáveis 
+                      00069         CBLOCK 0x20                             ;Endereço inicial da memória do usuário                 
+                                                    
+  00000020            00070                 AUX_PULSOS                      ;Variável auxiliar para contagem do número de pulsos par
+                            a a máquina M2
+  00000021            00071                 N                                       ;Quantidade de bebidas que ainda podem ser feita
+                            s
+  00000022            00072                 W_TEMP
+  00000023            00073                 STATUS_TEMP
+  00000024            00074                 REG_DELAY
+                      00075         ENDC                                ;Fim do bloco de variáveis
+                      00076 
+                      00077 ;*************************************************** 
+                      00078 ;*                           CONSTANTES                    *                   
+                      00079 ;*************************************************** 
+                      00080 ;Definição de constantes utilizadas no programa
+                      00081 
+  000000F6            00082 TA                      EQU             246             ;Delay de (255-Ta)/10 segundos (Com clock extern
+                            o de 10Hz)
+                      00083                                                         ;para ativação das máquinas M1, M2, M3 e M4
+  0000000F            00084 N_INIC          EQU             15              ;Valor inicial da quantidade de Cuba libres que podem se
+                            r preparadas
+                      00085 ;*************************************************** 
+                      00086 ;*                                ENTRADAS                     *                   
+                      00087 ;*************************************************** 
+                      00088 ; Definição de todos os pinos que serão utilizados como entrada
+                      00089 
+                      00090         #DEFINE         OSC                     PORTA, RA4              ;Oscilador externo (necessidade 
+                            de delay muito grande)
+                      00091         #DEFINE         PARTIDA         PORTA, RA5      ;Botão de partida (ligamento da máquina e prepar
+                            ação das variáveis)
+                      00092         #DEFINE         PREPARAR        PORTB, RB0              ;Botão para começar preparamento da bebi
+                            da (Interrupção externa)
+                      00093         #DEFINE         CARREGAR        PORTB, RB6              ;Botão para o usuário reabastecer os mat
+                            eriais das máquinas (rum, gelo, etc.)
+                      00094         #DEFINE         S                       PORTB, RB7              ;Sinal enviado por M4 avisando q
+                            ue já escoou 250ml de Coca-Cola
+                      00095 
+                      00096 ;*************************************************** 
+                      00097 ;*                     SAÍDAS                      *                   
+                      00098 ;*************************************************** 
+                      00099 ; Definição de todos os pinos que serão utilizados como saída
+                      00100 
+                      00101         #DEFINE         M1                              PORTB, RB1              ;Máquina 1 (fornece dose
+                             de rum)
+                      00102         #DEFINE         M2                              PORTB, RB2              ;Máquina 2 (fornece um c
+                            ubo de gelo)
+                      00103         #DEFINE         M3                              PORTB, RB3              ;Máquina 3 (fornece uma 
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                            fatia de limão)
+                      00104         #DEFINE         M4                              PORTB, RB4              ;Máquina 4 (fornece 250m
+                            l de Coca-Cola e envia sinal de saída S=1)
+                      00105         #DEFINE         LED_CARREGAR    PORTB, RB5              ;Sinaliza que não há material para reali
+                            zaão da cuba libre, e é necessária a recarga    
+                      00106 
+                      00107         #DEFINE         LED_PREPARANDO  PORTA, RA6              ;Sinaliza que está em andamento a prepar
+                            ação da bebida
+                      00108         #DEFINE         LED_FIM                 PORTA, RA7              ;Sinaliza término do preparo da 
+                            bebida
+                      00109                 
+                      00110         #DEFINE         D1                              PORTA, RA0              ;4 Segmentos para aciona
+                            mento do Display de 7 segmentos, que
+                      00111         #DEFINE         D2                              PORTA, RA1              ;já possui decodificador
+                             interno
+                      00112         #DEFINE         D3                              PORTA, RA2              ; 
+                      00113         #DEFINE         D4                              PORTA, RA3      
+                      00114 
+                      00115 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00116 ;*                         VETOR DE RESET                                  *              
+                      00117 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00118 
+0000                  00119         ORG             0x00            ;Endereço inicial de processamento
+0000   2860           00120         GOTO    INICIO
+                      00121 
+                      00122 ;***************************************************
+                      00123 ;*                              INÍCIO DA INTERRUPÇÃO                  *
+                      00124 ;***************************************************
+0004                  00125         ORG             0x04            ;Endereço inicial da interrupção
+0004                  00126 SALVA_CONTEXTO
+0004   138B           00127         BCF             HAB_GERAL       ;Desabilita interrupções gerais
+0005   00A2           00128         MOVWF   W_TEMP          ;Copia W para a variável temporária W_TEMP
+0006   0E03           00129         SWAPF   STATUS,W        ;Realiza a operação de SWAP em Status e armazena em W,
+                      00130                                                 ;essa operação é feita para não afetar os flags da variá
+                            vel STATUS
+0007   00A3           00131         MOVWF   STATUS_TEMP     ;Copia o registro W (STATUS "invertido" pelo SWAP) em STATUS_TEMP
+                      00132         
+                      00133 ;***************************************************
+                      00134 ;*         ROTINA DE ATENDIMENTO DAS INTERRUPÇÕES          *
+                      00135 ;***************************************************
+0008                  00136 VERIFICA_FLAGS                          ;Verificação dos Flags que podem ter gerado interrupção
+0008   190B           00137         BTFSC   T0_FLAG                 ;Testa se ocorreu interrupção do TMR0
+0009   280F           00138         GOTO    TRATA_TMR0              ;Se sim, trata essa interrupção
+000A   180B           00139         BTFSC   PORTB_FLAG              ;Testa a flag das interrupções geradas por PORTB (S e Carregar)
+000B   281D           00140         GOTO    TRATA_PORTB             ;Se sim, trata essa interrupção
+000C   188B           00141         BTFSC   PREP_FLAG               ;Testa se ocorreu interrupção por RB0 (Preparar) 
+000D   2815           00142         GOTO    TRATA_PREPARAR  ;Se sim, trata essa interrupção
+                      00143 
+000E   282C           00144         GOTO    SAI_INT                 ;Caso nenhum flag esteja ativado, sai da interrupção
+                      00145 
+000F                  00146 TRATA_TMR0
+000F   110B           00147         BCF             T0_FLAG         ;Limpa o flag de estouro do Timer0      
+0010   128B           00148         BCF             HAB_TMR0        ;Desabilita a interrupção do Timer0
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0011   30F6           00149         MOVLW   TA                      ;Move o valor do delay (TA)
+0012   0081           00150         MOVWF   TMR0            ;Move o valor de delay de TA para TMR0
+0013   1424           00151         BSF             DELAY_OK        ;Avisa que o tempo de delay já passou           
+0014   282C           00152         GOTO    SAI_INT         ;Sai interrupção
+                      00153 
+0015                  00154 TRATA_PREPARAR
+0015   108B           00155         BCF             PREP_FLAG       ;Limpa a flag de preparação
+0016   120B           00156         BCF             HAB_PREP        ;Desabilita a interrupção do Preparar
+                      00157                                                 ;Agora é necessário verificar se há material para realiz
+                            ação da Cuba Libre
+0017   0821           00158         MOVF    N, W            ;Move o valor de N para o acumulador W
+0018   1903           00159         BTFSC   ZERO            ;Caso o valor de N seja zero, o sinalizador Z estará setado
+0019   282C           00160         GOTO    SAI_INT         ;É sinalizado que não há materiais, e sai da interrupção
+                      00161 
+001A   1385           00162         BCF             LED_FIM                 ;Apaga o LED fim 
+001B   1705           00163         BSF             LED_PREPARANDO  ;Acende o LED preparando, avisando que a bebida está sendo feita
+                      00164         
+001C   282C           00165         GOTO    SAI_INT         ;Depois de tratada, sai da interrupção
+                      00166 
+001D                  00167 TRATA_PORTB                     ;Existem 2 pinos de entrada que podem gerar interrupção
+                      00168                                         ;por mudança de estado em PORTB: RB6 (Carregar) e
+                      00169                                         ;RB7 (S, que sinaliza termino da Máquina 4)
+                      00170 
+001D   100B           00171         BCF             PORTB_FLAG      ;Limpa a flag por PORTB. 2 interrupções podem gerar flag dessa i
+                            nterrupção
+001E   1B06           00172         BTFSC   CARREGAR        ;Testa se a interrupção foi Carregar
+001F   2828           00173         GOTO    TRATA_CARREGAR ;Se sim, trata carregar
+0020   1B86           00174         BTFSC   S                       ;Testa se a interrupção foi S
+0021   2823           00175         GOTO    TRATA_S         ;Se sim, trata S
+0022   282C           00176         GOTO    SAI_INT         ;Caso não, sai da interrupção
+                      00177 
+0023                  00178 TRATA_S
+0023   108B           00179         BCF             PREP_FLAG
+0024   1E06           00180         BTFSS   M4                              
+0025   282C           00181         GOTO    SAI_INT 
+0026   1206           00182         BCF             M4
+                      00183 
+0027   282C           00184         GOTO    SAI_INT
+                      00185 
+0028                  00186 TRATA_CARREGAR
+0028   300F           00187         MOVLW   N_INIC
+0029   00A1           00188         MOVWF   N       
+002A   2056           00189         CALL    DISPLAY
+002B   282C           00190         GOTO    SAI_INT
+                      00191 
+                      00192 ;****************************************************
+                      00193 ;*                           SAÍDA DA INTERRUPÇÃO                       *
+                      00194 ;****************************************************
+002C                  00195 SAI_INT                                         ;Antes de sair da interrupção é necessário retornar o co
+                            ntexto (recuperar os valores dos registros STATUS e W)
+002C   0E23           00196         SWAPF   STATUS_TEMP,W
+002D   0083           00197         MOVWF   STATUS                  ;Move STATUS_TEMP para STATUS
+002E   0EA2           00198         SWAPF   W_TEMP, F       
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+002F   0E22           00199         SWAPF   W_TEMP, W
+0030   178B           00200         BSF             HAB_GERAL
+0031   0009           00201         RETFIE  
+                      00202 
+                      00203 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00204 ;*                  DEFINIÇÃO DE ROTINAS E SUB-ROTINAS                     *              
+                      00205 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00206 
+                      00207 ;*************************************************** 
+                      00208 ;*ROTINA QUE SINALIZA DE ESVAZIAMENTO DAS MÁQUINAS *                   
+                      00209 ;*************************************************** 
+                      00210 ;Com N=0, é necessário o reabastecimento das máquinas
+0032                  00211 SINALIZA_CARREGAR
+0032   1305           00212         BCF             LED_PREPARANDO          
+                      00213 
+0033   1686           00214         BSF             LED_CARREGAR
+0034   204F           00215         CALL    AGUARDA_TMR0    
+0035   1286           00216         BCF             LED_CARREGAR
+0036   204F           00217         CALL    AGUARDA_TMR0
+0037   1686           00218         BSF             LED_CARREGAR
+0038   204F           00219         CALL    AGUARDA_TMR0
+0039   1286           00220         BCF             LED_CARREGAR
+003A   287A           00221         GOTO    AGUARDA_ACIONAMENTO
+                      00222 
+                      00223 ;*************************************************** 
+                      00224 ;*        ROTINA DE ACIONAMENTO DE MÁQUINAS        *                   
+                      00225 ;***************************************************
+003B                  00226 ACIONA_MAQ
+                      00227 
+                      00228 
+003B   03A1           00229         DECF    N, 1                    ;Decrementa 1 unidade na quantidade de cuba libres que podem ser
+                             feitas
+003C   2056           00230         CALL    DISPLAY                 ;Apresenta o valor de N no display de 7 seg
+                      00231 
+003D   1486           00232         BSF             M1                              ;Aciona a Máquina M1
+003E   204F           00233         CALL    AGUARDA_TMR0
+003F   1086           00234         BCF             M1                              ;Para o acionamento de M1
+0040   204F           00235         CALL    AGUARDA_TMR0            ;Liga interrupção de TMR0 e espera para formar o pulso de aciona
+                            mento
+                      00236 
+0041   3004           00237         MOVLW   4                               ;Atribuindo valor 4 para AUX_PULSOS
+0042   00A0           00238         MOVWF   AUX_PULSOS              ;Para determinar 4 pulsos de acionamento para M2
+0043   1506           00239         BSF             M2                              ;Aciona a Máquina M2
+0044   204F           00240         CALL    AGUARDA_TMR0            ;Liga interrupção de TMR0 e espera para formar o pulso de aciona
+                            mento
+0045   1106           00241         BCF             M2                              ;Para o acionamento de M2
+0046   204F           00242         CALL    AGUARDA_TMR0            ;Liga interrupção de TMR0 e espera para formar o pulso de aciona
+                            mento
+Message[305]: Using default destination of 1 (file).
+0047   0BA0           00243         DECFSZ  AUX_PULSOS              ;Decrementa AUX_PULSOS e testa se é zero
+0048   2843           00244         GOTO    $-5                             ;Caso AUX_PULSOS>0, volta 5 instruções onde se 
+                      00245                                                         ;iniciou acionamento de M2
+0049   1586           00246         BSF             M3                              ;Aciona a Máquina M3
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+004A   204F           00247         CALL    AGUARDA_TMR0            ;Liga interrupção de TMR0 e espera para formar o pulso de aciona
+                            mento
+004B   1186           00248         BCF             M3                              ;Para o acionamento de M3
+004C   204F           00249         CALL    AGUARDA_TMR0            ;Liga interrupção de TMR0 e espera para formar o pulso de aciona
+                            mento
+                      00250 
+004D   1606           00251         BSF             M4                              ;Aciona a Máquina M4
+                      00252         
+004E   0008           00253         RETURN  
+                      00254 
+                      00255 ;*************************************************** 
+                      00256 ;*                   ROTINA DE DELAY                       *                   
+                      00257 ;***************************************************
+                      00258                                                 ;Rotina de geração de delay a partir do contador Timer0 
+004F                  00259 AGUARDA_TMR0
+004F   1024           00260         BCF             DELAY_OK                ;Limpa-se o bit DELAY_OK, que é setado na interrupção de
+                             TMR0
+0050   30F6           00261         MOVLW   TA                              ;Valor inicial de TMR0 é atribuído
+0051   0081           00262         MOVWF   TMR0
+0052   168B           00263         BSF             HAB_TMR0                ;É habilitado a interrupção de TMR0
+0053                  00264 DELAY_TA
+0053   1C24           00265         BTFSS   DELAY_OK                ;A contagem do delay terminou?
+0054   2853           00266         GOTO    $-1                             ;Caso não tenha terminado, volta pra instrução anterior
+                      00267                                                         ;Aguardando até que TFLAG estoure (termine a con
+                            tagem)
+0055   0008           00268         RETURN                                  ;Retorna o desvio de chamada
+                      00269 
+                      00270 ;*************************************************** 
+                      00271 ;* ROTINA DE ACIONAMENTO DO DISPLAY DE 7 SEGMENTOS *                   
+                      00272 ;***************************************************
+0056                  00273 DISPLAY
+0056   30F0           00274         MOVLW   B'11110000'                     ;Mantém os 4 MSB (pinos diversos) e limpa os LSB
+0057   0585           00275         ANDWF   PORTA, 1                        ;Operação AND bit a bit entre W e PORTA
+                      00276                                                                 ;zera os 4 LSB (display)
+0058   0821           00277         MOVF    N, W                            ;Move valor de N para o acumulador W
+0059   0485           00278         IORWF   PORTA, 1                        ;Realiza operação OR entre W e PORTA,
+                      00279                                                                 ;e guarda resultado em PORTA, acionando
+                      00280                                                                 ;os 4 bits (LSB) do Display e mantendo i
+                            nalterado
+                      00281                                                                 ;os outros 4 bits (MSB) de PORTA
+                      00282 
+005A   0008           00283         RETURN                                          ;Retorno da rotina de chamada
+                      00284 
+                      00285 ;*************************************************** 
+                      00286 ;*  DEFINE AS HABILITAÇÕES INICIAIS DE INTERRUPÇÃO *                   
+                      00287 ;***************************************************
+                      00288 
+005B                  00289 INICIA_INT
+005B   178B           00290         BSF             HAB_GERAL               ;Aqui são habilitadas as interrupções iniciais que serão
+                             consideradas,
+005C   160B           00291         BSF             HAB_PREP                ;assim, somente a interrupção por TMR0 é desabilitada
+005D   158B           00292         BSF             HAB_RB
+005E   128B           00293         BCF             HAB_TMR0
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+005F   0008           00294         RETURN
+                      00295 
+                      00296 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00297 ;*                     INÍCIO DO PROGRAMA                                  *              
+                      00298 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00299 ;Configuração de operação do microcontrolador
+0060                  00300 INICIO
+0060   1683           00301         BANK1                                   ;Altera para o Banco 1 da memória de dados
+0061   3030           00302         MOVLW   B'00110000'             ;Configura PORTA como entrada ou saída
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0062   0085           00303         MOVWF   TRISA                   ;IN: RA4, RA5.  OUT: RA0, RA1, RA2, RA3, RA6 RA7
+                      00304                 
+0063   30C1           00305         MOVLW   B'11000001'             ;Configura PORTB como entrada ou saída
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0064   0086           00306         MOVWF   TRISB                   ;IN: RB0, RB6, RB7.     OUT: RB1, RB2, RB3, RB4, RB5            
+                                                                    
+                      00307         
+0065   30E8           00308         MOVLW   B'11101000'             ;OPTION_REG: RBPU|INTEDG|T0CS|T0SE|PSA|PS2|PS1|PS0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0066   0081           00309         MOVWF   OPTION_REG              ;habilita pull-ups portb|fonte de clock será RA4/T0CKI|sem presc
+                            aler pra TMR0|0|0|0
+                      00310 
+0067   3008           00311         MOVLW   B'00001000'     ;Utilizar cristal interno de 4MHz
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0068   008E           00312         MOVWF   PCON
+                      00313 
+0069   30B8           00314         MOVLW   B'10111000'             ;Habilitar os bits de interrupções: geral (GIE), do timer 0 (TMR
+                            0),
+006A   008B           00315         MOVWF   INTCON                  ;externa (INTE), e por mudança na porta B (RBIE).
+                      00316         
+                      00317         
+006B   1283           00318         BANK0                                   ;Altera para o Banco 0 da memória de dados
+                      00319 
+006C   3007           00320         MOVLW   B'00000111'
+006D   009F           00321         MOVWF   CMCON                   ;Desativando as entradas analógicas
+                      00322 
+                      00323 ;************************************************* 
+                      00324 ;*          INICIALIZAÇÃO DAS VARIÁVEIS          *                   
+                      00325 ;*************************************************
+006E                  00326 INIC_VAR                                        ;Inicializa as variáveis
+006E   0185           00327         CLRF    PORTA                   ;Zera PORTA A
+006F   0186           00328         CLRF    PORTB                   ;Zera PORTA B
+0070   01A0           00329         CLRF    AUX_PULSOS              ;Zera Variável Auxiliar
+0071   01A2           00330         CLRF    W_TEMP                  ;Zera o W_TEMP
+0072   01A3           00331         CLRF    STATUS_TEMP             ;Zera o STATUS_TEMP
+0073   300F           00332         MOVLW   N_INIC                  ;Valor inicial da quantidade    
+0074   00A1           00333         MOVWF   N                               ;de bebidas que podem ser preparadas
+0075   01A4           00334         CLRF    REG_DELAY
+                      00335 
+0076                  00336 LIGAR                                   
+0076   1E85           00337         BTFSS   PARTIDA                 ;Testa o pino PARTIDA
+0077   2876           00338         GOTO    $-1                             ;Aguarda PARTIDA=1 para entrar na rotina principal
+                      00339 
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00340 ;************************************************* 
+                      00341 ;*               ROTINA PRINCIPAL                *                   
+                      00342 ;*************************************************
+0078                  00343 MAIN_LOOP
+0078   205B           00344         CALL    INICIA_INT
+0079   2056           00345         CALL    DISPLAY                 ;Aciona o Display com o valor de N
+                      00346 
+007A                  00347 AGUARDA_ACIONAMENTO
+007A   205B           00348         CALL    INICIA_INT
+007B   0063           00349         SLEEP                                   ;Aguarda interrupção ou Reset
+007C   0000           00350         NOP                                             ;Ao ocorrer interrupção (RB0, RB6 ou RB7), o sis
+                            tema trata ela e volta pro Main_loop
+                      00351 
+007D   0821           00352         MOVF    N, W            ;Move o valor de N para o acumulador W
+007E   1903           00353         BTFSC   ZERO            ;Caso o valor de N seja zero, o sinalizador Z estará setado
+007F   2832           00354         GOTO    SINALIZA_CARREGAR       ;E com N sendo zero, será sinalizado ao usuário que é necessário
+                             recarga
+                      00355         
+0080   1C06           00356         BTFSS   PREPARAR                        ;Caso N>0, é verificado se o MCU saiu do SLEEP pela inte
+                            rrupção do Preparar
+0081   287A           00357         GOTO    AGUARDA_ACIONAMENTO ;Caso outra interrupção tenha feito o MCU sair do sleep, ele volta n
+                            ovamente a rotina e entra em sleep
+                      00358 
+0082   203B           00359         CALL    ACIONA_MAQ                      ;Caso tenha saído da interrupção por preparar e N>0, com
+                            eça o acionamento das máquinas
+                      00360 
+0083   158B           00361         BSF             HAB_RB                          ;Aqui é habilitado a interrupção por mudança de 
+                            estado em RB (CARREGAR e S)
+0084                  00362 AGUARDA_S
+0084   0063           00363         SLEEP                                   ;Aguarda interrupção somente de S (todas as outras estão
+                             desabilitadas) 
+0085   0000           00364         NOP
+0086   1F86           00365         BTFSS   S                               ;Quando se sai do sleep, depois do tratamento da interru
+                            pção, é verificado se foi pressionado S
+0087   2884           00366         GOTO    AGUARDA_S               
+                      00367                                                         ;Com a interrupção de S e devido tratamento, a b
+                            ebida foi preparada e o 
+                      00368                                                         ;sistema retorna ao ponto inicial
+                      00369 
+0088   1305           00370         BCF             LED_PREPARANDO          ;Fim da preparação da bebida, LED PREPARANDO se apaga
+0089   1785           00371         BSF             LED_FIM                         ;e LED FIM acende
+008A   204F           00372         CALL    AGUARDA_TMR0
+008B   2878           00373         GOTO    MAIN_LOOP               ;Retorna para o começo da rotina MAIN_LOOP
+                      00374 
+                      00375 ;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                      00376 ;X                FIM DO PROGRAMA                X                   
+                      00377 ;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                      00378         END
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 10
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ACIONA_MAQ                        0000003B
+ADDEN                             00000003
+ADEN                              00000003
+AGUARDA_ACIONAMENTO               0000007A
+AGUARDA_S                         00000084
+AGUARDA_TMR0                      0000004F
+AUX_PULSOS                        00000020
+BANK0                             BCF STATUS, RP0
+BANK1                             BSF STATUS, RP0
+BRGH                              00000002
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CARREGAR                          PORTB, RB6
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CIS                               00000003
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000001F
+CMIE                              00000006
+CMIF                              00000006
+CREN                              00000004
+CSRC                              00000007
+D1                                PORTA, RA0
+D2                                PORTA, RA1
+D3                                PORTA, RA2
+D4                                PORTA, RA3
+DATA_CP_OFF                       00003FFF
+DATA_CP_ON                        00003EFF
+DC                                00000001
+DELAY_OK                          REG_DELAY, 0
+DELAY_TA                          00000053
+DISPLAY                           00000056
+EEADR                             0000009B
+EECON1                            0000009C
+EECON2                            0000009D
+EEDATA                            0000009A
+EEIE                              00000007
+EEIF                              00000007
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 11
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GIE                               00000007
+HAB_GERAL                         INTCON, GIE
+HAB_PREP                          INTCON, INTE
+HAB_RB                            INTCON, RBIE
+HAB_TMR0                          INTCON, T0IE
+INDF                              00000000
+INICIA_INT                        0000005B
+INICIO                            00000060
+INIC_VAR                          0000006E
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+LED_CARREGAR                      PORTB, RB5
+LED_FIM                           PORTA, RA7
+LED_PREPARANDO                    PORTA, RA6
+LIGAR                             00000076
+M1                                PORTB, RB1
+M2                                PORTB, RB2
+M3                                PORTB, RB3
+M4                                PORTB, RB4
+MAIN_LOOP                         00000078
+N                                 00000021
+NOT_BO                            00000000
+NOT_BOD                           00000000
+NOT_BOR                           00000000
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+N_INIC                            0000000F
+OERR                              00000001
+OPTION_REG                        00000081
+OSC                               PORTA, RA4
+OSCF                              00000003
+PARTIDA                           PORTA, RA5
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PIE1                              0000008C
+PIR1                              0000000C
+PORTA                             00000005
+PORTB                             00000006
+PORTB_FLAG                        INTCON, RBIF
+PR2                               00000092
+PREPARAR                          PORTB, RB0
+PREP_FLAG                         INTCON, INTF
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 12
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+REG_DELAY                         00000024
+RP0                               00000005
+RP1                               00000006
+RX9                               00000006
+RX9D                              00000000
+S                                 PORTB, RB7
+SAI_INT                           0000002C
+SALVA_CONTEXTO                    00000004
+SINALIZA_CARREGAR                 00000032
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+STATUS                            00000003
+STATUS_TEMP                       00000023
+SYNC                              00000004
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T0_FLAG                           INTCON, T0IF
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1OSCEN                           00000003
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T2CON                             00000012
+TA                                000000F6
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRATA_CARREGAR                    00000028
+TRATA_PORTB                       0000001D
+TRATA_PREPARAR                    00000015
+TRATA_S                           00000023
+TRATA_TMR0                        0000000F
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRMT                              00000001
+TX9                               00000006
+TX9D                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+VERIFICA_FLAGS                    00000008
+VR0                               00000000
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+VR1                               00000001
+VR2                               00000002
+VR3                               00000003
+VRCON                             0000009F
+VREN                              00000007
+VROE                              00000006
+VRR                               00000005
+W                                 00000000
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+W_TEMP                            00000022
+Z                                 00000002
+ZERO                              STATUS,Z
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_OFF                           00003FFF
+_CP_ON                            00001FFF
+_DEVID1                           00002006
+_ER_OSC_CLKOUT                    00003FFF
+_ER_OSC_NOCLKOUT                  00003FFE
+_EXTCLK_OSC                       00003FEF
+_FOSC_ECIO                        00003FEF
+_FOSC_EXTRCCLK                    00003FFF
+_FOSC_EXTRCIO                     00003FFE
+_FOSC_HS                          00003FEE
+_FOSC_INTOSCCLK                   00003FFD
+_FOSC_INTOSCIO                    00003FFC
+_FOSC_LP                          00003FEC
+_FOSC_XT                          00003FED
+_HS_OSC                           00003FEE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_INTOSC_OSC_CLKOUT                00003FFD
+_INTOSC_OSC_NOCLKOUT              00003FFC
+_INTRC_OSC_CLKOUT                 00003FFD
+_INTRC_OSC_NOCLKOUT               00003FFC
+_LP_OSC                           00003FEC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_MCLRE_OFF                        00003FDF
+_MCLRE_ON                         00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC_CLKOUT                    00003FFF
+_RC_OSC_NOCLKOUT                  00003FFE
+MPASM  5.51  PROJETO_CUBALIBRE_(EXERCICIO1_V2   5-23-2017  0:59:35         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_XT_OSC                           00003FED
+__16F877A                         00000001
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : X---XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXX---- ---------------- ---------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   137
+Program Memory Words Free:  8055
+
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     6 reported,     0 suppressed
+
+

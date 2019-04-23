@@ -1,0 +1,46 @@
+MPLINK 4.49, Linker
+Linker Map File - Created Thu Apr 27 15:22:46 2017
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000000
+                   .org_1       code   0x000000    program   0x000086
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000042      
+            67 out of 2182 program addresses used, program memory utilization is 3%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+               ACIONA_MAQ   0x000005    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                 DELAY_TA   0x00001b    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                  DISPLAY   0x000022    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                   INICIO   0x000027    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                 INIC_VAR   0x00002d    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                    LIGAR   0x000032    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                MAIN_LOOP   0x000034    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+       VERIFICAR_MATERIAL   0x000001    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+       VERIFICAR_MATERIAL   0x000001    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+               ACIONA_MAQ   0x000005    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                 DELAY_TA   0x00001b    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                  DISPLAY   0x000022    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                   INICIO   0x000027    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                 INIC_VAR   0x00002d    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                    LIGAR   0x000032    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+                MAIN_LOOP   0x000034    program     static C:\Users\Estudante\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\EXERCICIO1_V1 04-2017\PROJETO_CUBALIBRE_(EXERCICIO1_V1 04-2017).asm
+
+

@@ -1,0 +1,1072 @@
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00002 ;*        Título: Controle de máquinas em Discoteca (Trabalho 2)                                        
+                                               *
+                      00003 ;*                                                                                                      
+                                                                                                                            
+                      00004 ;*              Disciplina: Microcomputadores                           Semestre: 2017.1                
+                                                                               *
+                      00005 ;*              Professor:      Mauro Rodrigues dos Santos                                              
+                                                                                               *                            
+                      00006 ;*                                                                                                      
+                                                                       *
+                      00007 ;*      Desenvolvido por:                                                                               
+                                                                       *
+                      00008 ;*      =>      Guilherme de Souza Bastos                                                               
+                               *
+                      00009 ;*      =>      Karl Vandesman de Matos Sousa                                                           
+                                                                                       *
+                      00010 ;*                                                                                                      
+                                                                                                       *
+                      00011 ;*      VERSÃO: 1.0                                     DATA:25/05/2017                                 
+                               *
+                      00012 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00013 
+                      00014 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00015 ;*                                     DESCRIÇÃO DO ARQUIVO                                            *
+                                          
+                      00016 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00017 
+                      00018 ; Este projeto trata do controle de iluminação e temperatura interna de uma discoteca, integrando o salã
+                            o 
+                      00019 ; e o bar, de forma a economizar energia. O sistema será composto de um sensor de temperatura LM35, um  
+                      00020 ; conjunto de ventiladores, perando por PWM e quatro ar-condicionados. A luminosidade será controlada co
+                            m 
+                      00021 ; um LDR e quatro conjuntos de luminárias. 
+                      00022         
+                      00023 ;                               * * * * * * * * * * * * * * * * * * * * * 
+                      00024 ;                               * Parâmetros no Controle de Temperatura *
+                      00025 ;                               * * * * * * * * * * * * * * * * * * * * *
+                      00026 ;_Faixa de temperatura__|___ventiladores_(PWM)__|___Ar1_|___Ar2 |___Ar3_|___Ar4___                      
+                                                 
+                      00027 ;               <=20ºC                  |               10% Pmax                |  DESL |  DESL |  DESL 
+                            |       DESL
+                      00028 ;       >20ºC a <=25ºC          |               30% Pmax                |       LIG     |  DESL |  DESL 
+                            |       DESL
+                      00029 ;       >25ºC a <=30ºC          |               75% Pmax                |       LIG     |       LIG |  D
+                            ESL     |       DESL
+                      00030 ;               >30ºC                   |               90% Pmax                |       LIG     |       
+                            LIG     |       LIG     |       LIG                                           
+                      00031                                                                                
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00032 ;                       * * * * * * * * * * * * * * * * * * * * * 
+                      00033 ;                       * Parâmetros no Controle de Luminosidade*
+                      00034 ;                       * * * * * * * * * * * * * * * * * * * * *
+                      00035 ;___Luz ambiente____|___Lum1____|___Lum2____|___Lum3____|___Lum4____
+                      00036 ;          Claro                |       desl    |       desl    |       desl    |       desl
+                      00037 ;          Sombra               |       lig             |       desl    |       lig             |       
+                            desl
+                      00038 ;          Escuro               |       lig             |       lig             |       lig             
+                            |       lig
+                      00039                                                                                                         
+                                                      
+                      00040 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00041 ;*                     ARQUIVOS DE DEFINIÇÕES E CONFIGURAÇÕES                                          *
+                                        
+                      00042 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                             
+                      00043 
+                      00044         #INCLUDE <P16F877A.INC>         ;Arquivo padrão da Microchip para o PIC16F877A
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F877A processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      00566         LIST
+                      00045         RADIX           DEC                             ;Define o Decimal como forma padrão ("default" d
+                            o programa)
+                      00046                                                                 ;não sendo necessário expressar o número
+                             como .XX
+                      00047 
+2007   3F73           00048         __CONFIG _BOREN_ON & _CP_OFF & _PWRTE_ON & _WDT_OFF & _LVP_OFF  ;Brown-out reset habilitado (pro
+                            teção contra alimentação fraca)
+                      00049                                                                                                         
+                                                                                    ;Proteção de código desabilitado
+                      00050                                                                                                         
+                                                                                    ;Power-up Timer Enable hablitado
+                      00051                                                                                                         
+                                                                                    ;Watchdog timer desabilitado
+                      00052                                                                                                         
+                                                                                    ;Programação de baixa voltagem desabilit
+                      00053                                                                                                         
+                                                                                    ;Masterclear habilitado
+                      00054         #DEFINE BANK0   BCF STATUS, RP0 ;Definição de comandos para alteração   
+                      00055         #DEFINE BANK1   BSF STATUS, RP0 ;da página de memória de dados
+                      00056 
+                      00057         #DEFINE ZERO            STATUS, Z                       ;Flag Z do registrador STATUS
+                      00058         #DEFINE TFLAG           INTCON, T0IF            ;Flag do Timer 0
+                      00059 
+                      00060         #DEFINE LIGA_CONV       ADCON0, 2           ;Bit que controla o início/fim da conversão
+                      00061         #DEFINE PWM                     CCPR1L          ;Variável comprimento do pulso do PWM
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00062         #DEFINE CARRY           STATUS, C       ;Flag que indica carry out
+                      00063         #DEFINE SEL_CANAL       ADCON0, 3               ;Os bits 3 a 5 de ADCON0 são responsáveis por se
+                            leção 
+                      00064                                                                                 ;do canal analógico que 
+                            será convertido no Conversor A/D
+                      00065                                                                                 ;Como estão sendo usadas
+                             apenas 2 portas analógicas, será
+                      00066                                                                                 ;modificado apenas o bit
+                             3 para seleção do canal
+                      00067         #DEFINE RESULT_CONV     ADRESL              ;Variável que guarda parte da conversão (parte baixa
+                            , 8 bits)
+                      00068 
+                      00069 ;*************************************************** 
+                      00070 ;*                               VARIÁVEIS                     *                   
+                      00071 ;*************************************************** 
+                      00072 ;Definição do bloco de variáveis 
+                      00073         CBLOCK 0x20                             ;Endereço inicial da memória do usuário                 
+                                                    
+                      00074 
+  00000020            00075 TEMPERATURA_VAR
+  00000021            00076 LUMINOSIDADE_VAR
+                      00077 
+  00000022            00078 AUX_TEMP
+  00000023            00079 AUX_LUM 
+                      00080         ENDC                                ;Fim do bloco de variáveis
+                      00081 
+                      00082 ;*************************************************** 
+                      00083 ;*                           CONSTANTES                    *                   
+                      00084 ;*************************************************** 
+                      00085 ;Definição de constantes utilizadas no programa
+                      00086         
+  000000FA            00087 TA                      EQU             250             ;Delay de (255-Ta)/10 segundos (Com clock extern
+                            o de 10Hz)
+                      00088                                                         ;Delay=20s, intervalo de medição dos sensores
+                      00089                                                         
+  00000029            00090 TEMP_20         EQU             41              ;Número digital equivalente a 20ºC (1023 -> 5V, 0-> 0V) 
+  00000034            00091 TEMP_25         EQU             52              ;Número digital equivalente a 25ºC (1023 -> 5V, 0-> 0V) 
+  0000003E            00092 TEMP_30         EQU             62              ;Número digital equivalente a 30ºC (1023 -> 5V, 0-> 0V) 
+                      00093 
+  0000002D            00094 NIVEL_LUZ_1     EQU             45                      ;Número digital equivalente a 50 Lux
+  0000009C            00095 NIVEL_LUZ_2     EQU             156             ;Número digital equivalente a 250 Lux
+                      00096 
+                      00097 
+                      00098 ;*************************************************** 
+                      00099 ;*                                ENTRADAS                     *                   
+                      00100 ;*************************************************** 
+                      00101 ; Definição de todos os pinos que serão utilizados como entrada
+                      00102         #DEFINE         LUMINOSIDADE    PORTA, RA0      ;Sensor de Luminosidade com LDR (Entrada analógi
+                            ca)
+                      00103         #DEFINE         TEMPERATURA             PORTA, RA1      ;Sensor de temperatura com LM35 (Entrada
+                             analógica) 
+                      00104         #DEFINE         OSC                             PORTA, RA4      ;Oscilador externo (necessidade 
+                            de delay muito grande)
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00105 
+                      00106         #DEFINE         PRESENCA                PORTB, RB0      ;Sensor de presença, usado para economia
+                             de energia (desligar os dispositivos 
+                      00107                                                                                         ;independente da
+                            s leituras de luminosidade e temperatura)
+                      00108 
+                      00109 ;*************************************************** 
+                      00110 ;*                     SAÍDAS                      *                   
+                      00111 ;*************************************************** 
+                      00112 ; Definição de todos os pinos que serão utilizados como saída
+                      00113 
+                      00114         #DEFINE         LIGADO                  PORTB, RB1              ;Indica se a o MCU está ligado o
+                            u não
+                      00115         
+                      00116         #DEFINE         VENTILADOR              PORTC, RC2              ;Saída PWM para ativamento do co
+                            njunto de ventiladores
+                      00117         
+                      00118         #DEFINE         AR1             PORTD, RD0              ;Ar condicionado 1
+                      00119         #DEFINE         AR2             PORTD, RD1              ;Ar condicionado 2
+                      00120         #DEFINE         AR3             PORTD, RD2              ;Ar condicionado 3
+                      00121         #DEFINE         AR4             PORTD, RD3              ;Ar condicionado 4
+                      00122         
+                      00123         #DEFINE         LUM1    PORTD, RD4              ;Luminária 1
+                      00124         #DEFINE         LUM2    PORTD, RD5              ;Luminária 2
+                      00125         #DEFINE         LUM3    PORTD, RD6              ;Luminária 3
+                      00126         #DEFINE         LUM4    PORTD, RD7              ;Luminária 4
+                      00127                 
+                      00128 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00129 ;*                         VETOR DE RESET                                  *              
+                      00130 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00131 
+0000                  00132         ORG             0x00            ;Endereço inicial de processamento
+0000   2881           00133         GOTO    INICIO
+                      00134 
+                      00135 ;***************************************************
+                      00136 ;*                              INÍCIO DA INTERRUPÇÃO                  *
+                      00137 ;***************************************************
+0004                  00138         ORG             0x04            ;Endereço inicial da interrupção
+                      00139 
+0004   0009           00140         RETFIE  
+                      00141 
+                      00142 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00143 ;*                  DEFINIÇÃO DE ROTINAS E SUB-ROTINAS                     *              
+                      00144 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00145 
+                      00146 ;*************************************************** 
+                      00147 ;*        ROTINA DE LEITURA DE LUMINOSIDADE        *                   
+                      00148 ;***************************************************
+0005                  00149 LER_LUMINOSIDADE
+0005   1283           00150         BANK0
+0006   119F           00151         BCF             SEL_CANAL               ;Seleção do canal de multiplexação do conversor A/D
+                      00152                                                         ;CHS2:CHS0 -> 3 bits responsáveis pela seleção d
+                            o canal
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00153                                                         ;001 -> Entrada analógica 0 (RA0)
+                      00154 
+0007   30A0           00155         MOVLW   160                             ;Após mudança de canal, é necessário um tempo para adequ
+                            ação do capacitor
+0008   2067           00156         CALL    DELAY_US                ;do conversor AD (40us)
+                      00157 
+0009   151F           00158         BSF             LIGA_CONV               ;Inicia conversão
+000A   191F           00159         BTFSC   LIGA_CONV           ;Testa fim da conversão
+000B   280A           00160         GOTO    $-1                         ;Se não terminou, volta a testar
+                      00161 
+000C   1683           00162         BANK1
+                      00163 
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+000D   081E           00164         MOVF    RESULT_CONV, W   ;Resultado da conversão em W e,
+000E   00A1           00165         MOVWF   LUMINOSIDADE_VAR        ;Transferido p/ variável temperatura
+                      00166         
+000F   1283           00167         BANK0
+                      00168 
+0010   0008           00169         RETURN  
+                      00170 
+                      00171 ;*************************************************** 
+                      00172 ;*         ROTINA DE LEITURA DE TEMPERATURA        *                   
+                      00173 ;***************************************************
+0011                  00174 LER_TEMPERATURA
+0011   1283           00175         BANK0
+                      00176 
+0012   159F           00177         BSF             SEL_CANAL               ;Seleção do canal de multiplexação do conversor A/D
+                      00178                                                         ;CHS2:CHS0 -> 3 bits responsáveis pela seleção d
+                            o canal
+                      00179                                                         ;001 -> Entrada analógica 1 (RA1)
+                      00180 
+0013   30A0           00181         MOVLW   160                             ;Após mudança de canal, é necessário um tempo para adequ
+                            ação do capacitor
+0014   2067           00182         CALL    DELAY_US                ;do conversor AD (40us)
+                      00183                                                         
+0015   151F           00184         BSF             LIGA_CONV               ;Inicia conversão
+0016   191F           00185         BTFSC   LIGA_CONV           ;Testa fim da conversão
+0017   2816           00186         GOTO    $-1                         ;Se não terminou, volta a testar
+                      00187         
+0018   1683           00188         BANK1                                           ;Move para Bank1 pois será usado o registro ADRE
+                            SL (RESULT_CONV), que está no Bank1
+                      00189                                                         
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0019   081E           00190         MOVF    RESULT_CONV, W   ;Resultado da conversão em W e,
+001A   00A0           00191         MOVWF   TEMPERATURA_VAR ;Transferido p/ variável temperatura
+                      00192 
+001B   1283           00193         BANK0
+                      00194 
+001C   0008           00195         RETURN
+                      00196 
+                      00197 ;*************************************************** 
+                      00198 ;*        ROTINA DE CONTROLE DA LUMINOSIDADE       *                   
+                      00199 ;***************************************************
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+001D                  00200 CONTROLE_LUMINOSIDADE   
+                      00201                                                         ;Para o controle, é comparado o valor lido no se
+                            nsor com constantes
+001D   302D           00202         MOVLW   NIVEL_LUZ_1             ;Move para o acumulador o primeiro valor de comparação de nível 
+                            de luz
+                      00203         
+001E   1683           00204         BANK1
+001F   0221           00205         SUBWF   LUMINOSIDADE_VAR, W     ;Compara o valor lido da luminosidade com o primeiro nível de lu
+                            z
+0020   1C03           00206         BTFSS   CARRY                           ;Verifica-se o carry da subtração
+0021   2833           00207         GOTO    LUM_ESCURO                      ;Se o valor da luminosidade for menor que o primeiro nív
+                            el, significa
+                      00208                                                                 ;que Luminosidade é menor que 50 Lux, lo
+                            go ambiente está escuro
+                      00209                                                                 
+0022   309C           00210         MOVLW   NIVEL_LUZ_2                     ;Para verificar o próximo intervalo de luminosidade, é c
+                            omparado com 
+0023   0221           00211         SUBWF   LUMINOSIDADE_VAR, W     ;o segundo nível de luminosidade (250 Lux)
+0024   1C03           00212         BTFSS   CARRY                           
+0025   282D           00213         GOTO    LUM_SOMBRA                      ;Se o valor do sensor for menor que 250 Lux e maior que 
+                            50 Lux, o ambiente está em sombra
+0026   2827           00214         GOTO    LUM_CLARO                       ;Se for maior que 250 Lux, está claro
+                      00215 
+0027                  00216 LUM_CLARO
+0027   1283           00217         BANK0
+0028   1208           00218         BCF             LUM1            ;Com o ambiente claro, todas as luzes ficarão apagadas
+0029   1288           00219         BCF             LUM2
+002A   1308           00220         BCF             LUM3
+002B   1388           00221         BCF             LUM4
+                      00222         
+002C   0008           00223         RETURN
+                      00224 
+002D                  00225 LUM_SOMBRA
+002D   1283           00226         BANK0
+002E   1608           00227         BSF             LUM1            ;Com o ambiente em sombra, 2 luminárias serão acesas
+002F   1288           00228         BCF             LUM2
+0030   1708           00229         BSF             LUM3
+0031   1388           00230         BCF             LUM4
+                      00231 
+0032   0008           00232         RETURN
+                      00233 
+0033                  00234 LUM_ESCURO
+0033   1283           00235         BANK0   
+0034   1608           00236         BSF             LUM1            ;Com o ambiente escuro, todas as luminárias serão ligadas
+0035   1688           00237         BSF             LUM2
+0036   1708           00238         BSF             LUM3
+0037   1788           00239         BSF             LUM4
+                      00240         
+0038   0008           00241         RETURN
+                      00242 
+                      00243 ;*************************************************** 
+                      00244 ;*        ROTINA DE CONTROLE DA TEMPERATURA        *                   
+                      00245 ;***************************************************    
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0039                  00246 CONTROLE_TEMPERATURA    
+0039   3029           00247         MOVLW   TEMP_20
+003A   1683           00248         BANK1
+003B   0220           00249         SUBWF   TEMPERATURA_VAR, W      ;Operação TEMPERATURA-20, resultado armazenado em W
+003C   1C03           00250         BTFSS   CARRY                           ;Verifica o carry, se temperatura<20ºC, utiliza a potênc
+                            ia mínima dos ventiladores
+003D   2847           00251         GOTO    POT_MINIMA                      ;e todos os ares-condicionados ficarão desligados
+                      00252         
+003E   3034           00253         MOVLW   TEMP_25
+003F   0220           00254         SUBWF   TEMPERATURA_VAR, W      ;Operação TEMPERATURA-25, resultado armazenado em W
+0040   1C03           00255         BTFSS   CARRY                           ;Verificado se a temperatura está entre 20ºC e 25ºC ou m
+                            aior que 25ºC           
+0041   284F           00256         GOTO    POT_BAIXA
+                      00257         
+0042   303E           00258         MOVLW   TEMP_30
+0043   0220           00259         SUBWF   TEMPERATURA_VAR, W      ;Operação TEMPERATURA-30, resultado armazenado em W
+0044   1C03           00260         BTFSS   CARRY
+0045   2857           00261         GOTO    POT_ALTA                        ;Se a temperatura estiver entre 25ºC e 30ºC, aciona potê
+                            ncia alta
+0046   285F           00262         GOTO    POT_MAXIMA                      ;Se a temperatura estiver maior que 30ºC, aciona a potên
+                            cia máxima
+                      00263         
+0047                  00264 POT_MINIMA                              ;Se a temperatura está menor que 20ºC:
+                      00265 ;*--- Controle da potência do conjunto de ventiladores ---*
+0047   1283           00266         BANK0
+0048   301A           00267         MOVLW   26                                      ;Potência de 10% no conjunto de ventiladores
+0049   0095           00268         MOVWF   PWM
+                      00269 ;*--- Controle dos ares-condicionados ---*
+004A   1008           00270         BCF             AR1                                     ;Todos os ares-condicionados estão desli
+                            gados
+004B   1088           00271         BCF             AR2                                     
+004C   1108           00272         BCF             AR3
+004D   1188           00273         BCF             AR4
+                      00274 
+004E   0008           00275         RETURN                                          ; os outros 4 bits (MSB) de PORTD
+                      00276 
+004F                  00277 POT_BAIXA                               ;Se a temperatura está entre 20ºC e 25ºC:
+                      00278 ;*--- Controle da potência do conjunto de ventiladores ---*
+004F   1283           00279         BANK0
+0050   304D           00280         MOVLW   77                                      ;Potência de 30% no conjunto de ventiladores
+0051   0095           00281         MOVWF   PWM
+                      00282 ;*--- Controle dos ares-condicionados ---*      
+0052   1408           00283         BSF             AR1                                     ;O ar-condicionado 1 será ligado
+0053   1088           00284         BCF             AR2
+0054   1108           00285         BCF             AR3
+0055   1188           00286         BCF             AR4
+                      00287         
+0056   0008           00288         RETURN
+                      00289         
+0057                  00290 POT_ALTA                                ;Se a temperatura está entre 25ºC e 30ºC:
+                      00291 ;*--- Controle da potência do conjunto de ventiladores ---*
+0057   1283           00292         BANK0
+0058   30C0           00293         MOVLW   192                                     ;Potência de 75% no conjunto de ventiladores
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0059   0095           00294         MOVWF   PWM
+                      00295 ;*--- Controle dos ares-condicionados ---*
+005A   1408           00296         BSF             AR1                                     ;Os ares-condicionado 1 e 2 serão aciona
+                            dos
+005B   1488           00297         BSF             AR2
+005C   1108           00298         BCF             AR3
+005D   1188           00299         BCF             AR4
+005E   0008           00300         RETURN
+                      00301 
+005F                  00302 POT_MAXIMA                              ;Se a temperatura está maior que 30ºC:
+                      00303 ;*--- Controle da potência do conjunto de ventiladores ---*
+005F   1283           00304         BANK0
+0060   30E6           00305         MOVLW   230                                     ;Potência de 90% no conjunto de ventiladores
+0061   0095           00306         MOVWF   PWM
+                      00307 ;*--- Controle dos ares-condicionados ---*
+0062   1408           00308         BSF             AR1                                     ;Todos os ares-condicionados serão ligad
+                            os
+0063   1488           00309         BSF             AR2
+0064   1508           00310         BSF             AR3
+0065   1588           00311         BSF             AR4
+                      00312 
+0066   0008           00313         RETURN
+                      00314 
+                      00315 ;*************************************************** 
+                      00316 ;*                   ROTINA DE DELAY (us)                  *                   
+                      00317 ;***************************************************
+                      00318 
+0067                  00319 DELAY_US                        ;Rotina implementada para o tempo de adequação do capacitor 
+0067   1283           00320         BANK0                   ;na troca de canal 
+0068   00A2           00321         MOVWF   AUX_TEMP
+                      00322         
+0069   0BA2           00323         DECFSZ  AUX_TEMP, F
+006A   2869           00324         GOTO    $-1
+                      00325         
+006B   0008           00326         RETURN
+                      00327 
+                      00328 
+                      00329 ;*************************************************** 
+                      00330 ;*                   ROTINA DE DELAY (ms)                  *                   
+                      00331 ;***************************************************
+                      00332 
+                      00333                                                 ;Rotina de geração de delay a partir do contador Timer0 
+                            que conta os ciclos de um oscilador externo
+006C                  00334 DELAY_TA
+006C   1283           00335         BANK0
+006D   0181           00336     CLRF    TMR0                        ;Limpa o registro do contador Timer0
+006E   110B           00337         BCF     TFLAG                   ;Limpa o flag de estouro do Timer0
+006F   0081           00338         MOVWF   TMR0                    ;Move o valor do acumulador para TMR0
+                      00339 
+0070   1D0B           00340         BTFSS   TFLAG                   ;A contagem do delay terminou?
+0071   2870           00341         GOTO    $-1                             ;Caso não tenha terminado, volta pra instrução anterior
+                      00342                                                         ;Aguardando até que TFLAG estoure (termine a con
+                            tagem)
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0072   0008           00343         RETURN                                  ;Retorna o desvio de chamada
+                      00344 
+                      00345 ;*************************************************** 
+                      00346 ;*                       ROTINA DESATIVA TUDO                  *                   
+                      00347 ;***************************************************
+0073                  00348 DESATIVA_TUDO
+                      00349                                         ;Quando o sensor de presença acusa que não há ninguém,
+                      00350                                         ;todas as saídas (ventilador, ares-condicionados e luminárias) s
+                            ão desativadas
+0073   0186           00351         CLRF    PORTB
+0074   0187           00352         CLRF    PORTC
+0075   0188           00353         CLRF    PORTD
+                      00354                 
+0076   1086           00355         BCF             LIGADO
+                      00356                 
+0077   3000           00357         MOVLW   0
+0078   0095           00358         MOVWF   PWM
+                      00359                 
+0079   0008           00360         RETURN
+                      00361         
+                      00362 ;************************************************* 
+                      00363 ;*          INICIALIZAÇÃO DAS VARIÁVEIS          *                   
+                      00364 ;*************************************************
+007A                  00365 INIC_VAR                                        ;Inicializa as variáveis
+007A   0185           00366         CLRF    PORTA                   ;Zera PORTA A
+007B   0186           00367         CLRF    PORTB                   ;Zera PORTA B
+007C   0187           00368         CLRF    PORTC                   ;Zera PORTA C
+007D   0188           00369         CLRF    PORTD                   ;Zera PORTA D
+                      00370         
+007E   01A0           00371         CLRF    TEMPERATURA_VAR ;Zera o valor das variáveis 
+007F   01A1           00372         CLRF    LUMINOSIDADE_VAR        
+                      00373 
+0080   0008           00374         RETURN
+                      00375 
+                      00376 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00377 ;*                     INÍCIO DO PROGRAMA                                  *              
+                      00378 ;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+                      00379 ;Configuração de operação do microcontrolador
+0081                  00380 INICIO
+0081   1683           00381         BANK1                                   ;Altera para o Banco 1 da memória de dados
+0082   301B           00382         MOVLW   B'00011011'             ;Configura PORTA como entrada ou saída
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0083   0085           00383         MOVWF   TRISA                   ;IN: RA0, RA1, RA4.     OUT: RA2, RA3, RA5, RA6, RA7
+                      00384                 
+0084   3001           00385         MOVLW   B'00000001'             ;Configura PORTB como entrada ou saída
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0085   0086           00386         MOVWF   TRISB                   ;IN: RB0.       OUT: RB1, RB2, RB3, RB4, RB5, RB6, RB7          
+                                                                    
+                      00387 
+0086   3000           00388         MOVLW   B'00000000'             ;Configura PORTB como entrada ou saída
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0087   0087           00389         MOVWF   TRISC                   ;OUT: RC0, RC1, RC2, RC3, RC4, RC5, RC6, RC7    
+                      00390 
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0088   3000           00391         MOVLW   B'00000000'
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0089   0088           00392         MOVWF   TRISD                   ;OUT: RD0, RD1, RD2, RD3, RD4, RD5, RD6, RD7    
+                      00393         
+008A   30E8           00394         MOVLW   B'11101000'             ;OPTION_REG: RBPU|INTEDG|T0CS|T0SE|PSA|PS2|PS1|PS0
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+008B   0081           00395         MOVWF   OPTION_REG              ;habilita pull-ups portb|fonte de clock será RA4/T0CKI|sem presc
+                            aler pra TMR0|0|0|0
+                      00396         
+                      00397 
+008C   3000           00398         MOVLW   B'00000000'             ;Desabilita todas as interrupções
+008D   008B           00399         MOVWF   INTCON
+                      00400 
+008E   3085           00401         MOVLW   B'10000101'             ;Seleciona RA0 e RA1 como portas analógicas
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+008F   009F           00402         MOVWF   ADCON1                  ;bit 7 (ADFM): A/D Result format select bit: 1 = Right justified
+                            . Six (6) Most Significant bits of ADRESH are read as ‘0’.
+                      00403                                                         ;bit 6 (ADCS2): A/D Conversion Clock Select bit 
+                                    
+                      00404                                                         ;       
+0090   1283           00405         BANK0                                   ;Altera para o Banco 0 da memória de dados
+                      00406         
+0091   1512           00407         BSF             T2CON, TMR2ON   ;Ativa o TMR2 que é a base de tempo do sinal gerada para o PWM
+                      00408 
+0092   3001           00409         MOVLW   B'00000001'     ;Ajuste das configurações do conversor A/D
+0093   009F           00410         MOVWF   ADCON0                  ;Bits 7-6 -> Seleção do clock conversão Fosc/2  
+                      00411                                                         ;Bits 5-3 -> Seleção do canal que será usado par
+                            a conversão A/D
+                      00412                                                         ;Bit 2 -> Status da conversão 
+                      00413                                                         
+0094   300C           00414         MOVLW   B'00001100'             ;Configuração do módulo CCP1
+0095   0097           00415         MOVWF   CCP1CON                 ;Bit 3-0: CCPxM3:CCPxM0: CCPx Mode Select bits -> 11xx = Modo PW
+                            M
+                      00416 
+0096   207A           00417         CALL    INIC_VAR                ;Coloca os valores iniciais das variáveis
+                      00418 
+                      00419 ;************************************************* 
+                      00420 ;*               ROTINA PRINCIPAL                *                   
+                      00421 ;*************************************************
+0097                  00422 MAIN_LOOP
+                      00423         
+0097   1806           00424         BTFSC   PRESENCA                        ;Verifica se há pessoas na discoteca
+0098   289B           00425         GOTO    INICIO_CONTROLE         ;Se tiver, começa o início da leitura dos sensores e controle
+0099   2073           00426         CALL    DESATIVA_TUDO           ;Se não tiver, desativa todas as saídas
+009A   2897           00427         GOTO    $-3                                     
+                      00428         
+009B                  00429 INICIO_CONTROLE
+009B   1486           00430         BSF             LIGADO
+009C   2011           00431         CALL    LER_TEMPERATURA                 ;Faz a leitura do sensor de temperatura
+009D   2039           00432         CALL    CONTROLE_TEMPERATURA    ;A partir da leitura, realiza o controle de temperatura
+                      00433                                                                         ;Fazendo controle do acionamento
+                             do conjunto de ventiladores e ares-condicionados
+                      00434 ;       CALL    DELAY_TA
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00435 
+009E   2005           00436         CALL    LER_LUMINOSIDADE                ;Faz a leitura do sensor de luminosidade
+009F   201D           00437         CALL    CONTROLE_LUMINOSIDADE   ;A partir da leitura, realiza o controle de temperatura
+                      00438                                                                         ;Fazendo controle do acionamento
+                             das luminárias
+00A0   2897           00439         GOTO    MAIN_LOOP
+                      00440 
+                      00441 ;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                      00442 ;X                FIM DO PROGRAMA                X                   
+                      00443 ;XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                      00444         END;
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 12
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ADCON0                            0000001F
+ADCON1                            0000009F
+ADCS0                             00000006
+ADCS1                             00000007
+ADCS2                             00000006
+ADDEN                             00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADON                              00000000
+ADRESH                            0000001E
+ADRESL                            0000009E
+AR1                               PORTD, RD0
+AR2                               PORTD, RD1
+AR3                               PORTD, RD2
+AR4                               PORTD, RD3
+AUX_LUM                           00000023
+AUX_TEMP                          00000022
+BANK0                             BCF STATUS, RP0
+BANK1                             BSF STATUS, RP0
+BCLIE                             00000003
+BCLIF                             00000003
+BF                                00000000
+BRGH                              00000002
+C                                 00000000
+C1INV                             00000004
+C1OUT                             00000006
+C2INV                             00000005
+C2OUT                             00000007
+CARRY                             STATUS, C
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCP2CON                           0000001D
+CCP2IE                            00000000
+CCP2IF                            00000000
+CCP2M0                            00000000
+CCP2M1                            00000001
+CCP2M2                            00000002
+CCP2M3                            00000003
+CCP2X                             00000005
+CCP2Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 13
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CCPR1L                            00000015
+CCPR2                             0000001B
+CCPR2H                            0000001C
+CCPR2L                            0000001B
+CHS0                              00000003
+CHS1                              00000004
+CHS2                              00000005
+CIS                               00000003
+CKE                               00000006
+CKP                               00000004
+CM0                               00000000
+CM1                               00000001
+CM2                               00000002
+CMCON                             0000009C
+CMIE                              00000006
+CMIF                              00000006
+CONTROLE_LUMINOSIDADE             0000001D
+CONTROLE_TEMPERATURA              00000039
+CREN                              00000004
+CSRC                              00000007
+CVR0                              00000000
+CVR1                              00000001
+CVR2                              00000002
+CVR3                              00000003
+CVRCON                            0000009D
+CVREN                             00000007
+CVROE                             00000006
+CVRR                              00000005
+D                                 00000005
+DATA_ADDRESS                      00000005
+DC                                00000001
+DELAY_TA                          0000006C
+DELAY_US                          00000067
+DESATIVA_TUDO                     00000073
+D_A                               00000005
+D_NOT_A                           00000005
+EEADR                             0000010D
+EEADRH                            0000010F
+EECON1                            0000018C
+EECON2                            0000018D
+EEDATA                            0000010C
+EEDATH                            0000010E
+EEIE                              00000004
+EEIF                              00000004
+EEPGD                             00000007
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+GCEN                              00000007
+GIE                               00000007
+GO                                00000002
+GO_DONE                           00000002
+GO_NOT_DONE                       00000002
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 14
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+I2C_DATA                          00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+IBF                               00000007
+IBOV                              00000005
+INDF                              00000000
+INICIO                            00000081
+INICIO_CONTROLE                   0000009B
+INIC_VAR                          0000007A
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IRP                               00000007
+LER_LUMINOSIDADE                  00000005
+LER_TEMPERATURA                   00000011
+LIGADO                            PORTB, RB1
+LIGA_CONV                         ADCON0, 2
+LUM1                              PORTD, RD4
+LUM2                              PORTD, RD5
+LUM3                              PORTD, RD6
+LUM4                              PORTD, RD7
+LUMINOSIDADE                      PORTA, RA0
+LUMINOSIDADE_VAR                  00000021
+LUM_CLARO                         00000027
+LUM_ESCURO                        00000033
+LUM_SOMBRA                        0000002D
+MAIN_LOOP                         00000097
+NIVEL_LUZ_1                       0000002D
+NIVEL_LUZ_2                       0000009C
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000002
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RC8                           00000006
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+NOT_TX8                           00000006
+NOT_W                             00000002
+NOT_WRITE                         00000002
+OBF                               00000006
+OERR                              00000001
+OPTION_REG                        00000081
+OSC                               PORTA, RA4
+P                                 00000004
+PCFG0                             00000000
+PCFG1                             00000001
+PCFG2                             00000002
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 15
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PCFG3                             00000003
+PCL                               00000002
+PCLATH                            0000000A
+PCON                              0000008E
+PEIE                              00000006
+PEN                               00000002
+PIE1                              0000008C
+PIE2                              0000008D
+PIR1                              0000000C
+PIR2                              0000000D
+PORTA                             00000005
+PORTB                             00000006
+PORTC                             00000007
+PORTD                             00000008
+PORTE                             00000009
+POT_ALTA                          00000057
+POT_BAIXA                         0000004F
+POT_MAXIMA                        0000005F
+POT_MINIMA                        00000047
+PR2                               00000092
+PRESENCA                          PORTB, RB0
+PS0                               00000000
+PS1                               00000001
+PS2                               00000002
+PSA                               00000003
+PSPIE                             00000007
+PSPIF                             00000007
+PSPMODE                           00000004
+PWM                               CCPR1L
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 16
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RC7                               00000007
+RC8_9                             00000006
+RC9                               00000006
+RCD8                              00000000
+RCEN                              00000003
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+RD                                00000000
+RD0                               00000000
+RD1                               00000001
+RD2                               00000002
+RD3                               00000003
+RD4                               00000004
+RD5                               00000005
+RD6                               00000006
+RD7                               00000007
+RE0                               00000000
+RE1                               00000001
+RE2                               00000002
+READ_WRITE                        00000002
+RESULT_CONV                       ADRESL
+RP0                               00000005
+RP1                               00000006
+RSEN                              00000001
+RX9                               00000006
+RX9D                              00000000
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SEL_CANAL                         ADCON0, 3
+SEN                               00000000
+SMP                               00000007
+SPBRG                             00000099
+SPEN                              00000007
+SREN                              00000005
+SSPADD                            00000093
+SSPBUF                            00000013
+SSPCON                            00000014
+SSPCON2                           00000091
+SSPEN                             00000005
+SSPIE                             00000003
+SSPIF                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPOV                             00000006
+SSPSTAT                           00000094
+STATUS                            00000003
+SYNC                              00000004
+T0CS                              00000005
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 17
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TA                                000000FA
+TEMPERATURA                       PORTA, RA1
+TEMPERATURA_VAR                   00000020
+TEMP_20                           00000029
+TEMP_25                           00000034
+TEMP_30                           0000003E
+TFLAG                             INTCON, T0IF
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 18
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISC                             00000087
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISD                             00000088
+TRISD0                            00000000
+TRISD1                            00000001
+TRISD2                            00000002
+TRISD3                            00000003
+TRISD4                            00000004
+TRISD5                            00000005
+TRISD6                            00000006
+TRISD7                            00000007
+TRISE                             00000089
+TRISE0                            00000000
+TRISE1                            00000001
+TRISE2                            00000002
+TRMT                              00000001
+TX8_9                             00000006
+TX9                               00000006
+TX9D                              00000000
+TXD8                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+UA                                00000001
+VENTILADOR                        PORTC, RC2
+W                                 00000000
+WCOL                              00000007
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+Z                                 00000002
+ZERO                              STATUS, Z
+_BODEN_OFF                        00003FBF
+_BODEN_ON                         00003FFF
+_BOREN_OFF                        00003FBF
+_BOREN_ON                         00003FFF
+_CONFIG                           00002007
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003EFF
+_CP_ALL                           00001FFF
+_CP_OFF                           00003FFF
+_CP_ON                            00001FFF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         000037FF
+MPASM  5.51  PROJETO_DISCOTECA_(V1 05-2017).A   6-3-2017  16:54:20         PAGE 19
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_DEVID1                           00002006
+_FOSC_EXTRC                       00003FFF
+_FOSC_HS                          00003FFE
+_FOSC_LP                          00003FFC
+_FOSC_XT                          00003FFD
+_HS_OSC                           00003FFE
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_LP_OSC                           00003FFC
+_LVP_OFF                          00003F7F
+_LVP_ON                           00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FF7
+_RC_OSC                           00003FFF
+_WDTE_OFF                         00003FFB
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FFB
+_WDT_ON                           00003FFF
+_WRT_1FOURTH                      00003BFF
+_WRT_256                          00003DFF
+_WRT_HALF                         000039FF
+_WRT_OFF                          00003FFF
+_XT_OSC                           00003FFD
+__16F877A                         00000001
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : X---XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX X--------------- ----------------
+2000 : -------X-------- ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   158
+Program Memory Words Free:  8034
+
+
+Errors   :     0
+Warnings :     0 reported,     0 suppressed
+Messages :     8 reported,     0 suppressed
+
+

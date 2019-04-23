@@ -1,0 +1,70 @@
+MPLINK 4.49, Linker
+Linker Map File - Created Sat Jun 03 16:54:21 2017
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000000
+                   .org_1       code   0x000000    program   0x000002
+                   .org_2       code   0x000004    program   0x00013a
+.config_2007_PROJETO_DISCOTECA_(V1 05-2017).O       code   0x002007    program   0x000002
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000000      
+                            0x000004    0x0000a0      
+                            0x002007    0x002007      
+            159 out of 8454 program addresses used, program memory utilization is 1%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+    CONTROLE_LUMINOSIDADE   0x00001d    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+     CONTROLE_TEMPERATURA   0x000039    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 DELAY_TA   0x00006c    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 DELAY_US   0x000067    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+            DESATIVA_TUDO   0x000073    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                   INICIO   0x000081    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+          INICIO_CONTROLE   0x00009b    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 INIC_VAR   0x00007a    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+         LER_LUMINOSIDADE   0x000005    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+          LER_TEMPERATURA   0x000011    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                LUM_CLARO   0x000027    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               LUM_ESCURO   0x000033    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               LUM_SOMBRA   0x00002d    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                MAIN_LOOP   0x000097    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 POT_ALTA   0x000057    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                POT_BAIXA   0x00004f    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               POT_MAXIMA   0x00005f    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               POT_MINIMA   0x000047    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+         LER_LUMINOSIDADE   0x000005    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+          LER_TEMPERATURA   0x000011    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+    CONTROLE_LUMINOSIDADE   0x00001d    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                LUM_CLARO   0x000027    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               LUM_SOMBRA   0x00002d    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               LUM_ESCURO   0x000033    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+     CONTROLE_TEMPERATURA   0x000039    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               POT_MINIMA   0x000047    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                POT_BAIXA   0x00004f    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 POT_ALTA   0x000057    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+               POT_MAXIMA   0x00005f    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 DELAY_US   0x000067    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 DELAY_TA   0x00006c    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+            DESATIVA_TUDO   0x000073    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                 INIC_VAR   0x00007a    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                   INICIO   0x000081    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+                MAIN_LOOP   0x000097    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+          INICIO_CONTROLE   0x00009b    program     static C:\Users\karlv\Dropbox\UFPE\2017.1\Micro\MICROCOMPUTADORES_17A\PROJETO_DISCOTECA_(V1 05-2017) 01-06-2017\PROJETO_DISCOTECA_(V1 05-2017).asm
+
+
